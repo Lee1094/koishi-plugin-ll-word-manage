@@ -91,21 +91,46 @@ function apply(ctx, config) {
     return changed
   }
 
-  // ===== 启动时加载 =====
-  let entries = { ...(config.entries || {}) }
-  let loaded = Object.keys(entries).length > 0
+  // ===== 启动时智能加载 =====
+  let entries = {}
 
   ;(async () => {
     const fromCore = await loadFromWordCore()
-    if (fromCore && !loaded) {
-      // 设置页还没配过，从 word-core 加载
+    if (!fromCore) {
+      entries = { ...(config.entries || {}) }
+      return
+    }
+
+    const configKeys = Object.keys(config.entries || {})
+    const coreKeys = Object.keys(fromCore)
+
+    // 计算指纹比较是否同一份数据
+    const fingerprint = (obj) => {
+      const ks = Object.keys(obj || {}).sort()
+      const vs = ks.map(k => [...(obj[k] || [])].sort().join('\x00'))
+      return JSON.stringify({ ks, vs })
+    }
+    const configFP = fingerprint(config.entries)
+    const coreFP = fingerprint(fromCore)
+
+    if (configKeys.length === 0 && coreKeys.length > 0) {
+      // 首次使用：从 word-core 加载
       entries = fromCore
       Object.assign(config.entries, entries)
-      loaded = true
-      ctx.logger.info(`[word-manage] 已从 word-core 加载 ${Object.keys(entries).length} 条词条`)
-    } else if (loaded) {
-      // 设置页有数据，同步到 word-core
-      await syncConfigToWordCore(entries)
+      ctx.logger.info(`[word-manage] 首次加载 "${config.library || '默认'}" 共 ${coreKeys.length} 条`)
+    } else if (configKeys.length > 0 && configFP !== coreFP) {
+      // 配置页有修改 → 同步到 word-core
+      ctx.logger.info('[word-manage] 检测到配置变更，同步到 word-core...')
+      await syncConfigToWordCore(config.entries || {})
+      entries = { ...(config.entries || {}) }
+    } else {
+      // 数据一致，直接用 word-core 最新数据
+      entries = fromCore
+      if (configFP !== coreFP) {
+        // 刷新配置页显示
+        for (const k of Object.keys(config.entries)) delete config.entries[k]
+        Object.assign(config.entries, entries)
+      }
     }
   })()
 

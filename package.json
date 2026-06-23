@@ -1,6 +1,6 @@
 {
   "name": "koishi-plugin-ll-word-manage",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Config-page table UI for managing koishi-plugin-word-core word libraries",
   "main": "index.js",
   "license": "MIT",
