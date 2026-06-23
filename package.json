@@ -1,0 +1,18 @@
+{
+  "name": "koishi-plugin-ll-word-manage",
+  "version": "1.0.0",
+  "description": "Config-page table UI for managing koishi-plugin-word-core word libraries",
+  "main": "index.js",
+  "license": "MIT",
+  "keywords": ["koishi", "koishi-plugin", "word-core", "word", "manage"],
+  "peerDependencies": {
+    "koishi": "^4.18.0",
+    "koishi-plugin-word-core": "^1.0.37"
+  },
+  "koishi": {
+    "description": {
+      "zh": "在插件设置页用表格管理 word-core 词库。支持添加/编辑/删除词条，自动同步到 word-core 引擎。",
+      "en": "Manage word-core libraries via config page table. Add/edit/delete entries, auto-sync to word-core engine."
+    }
+  }
+}
